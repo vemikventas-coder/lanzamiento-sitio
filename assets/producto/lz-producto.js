@@ -54,13 +54,26 @@
     return hayBoton ? '' : '<p class="lzp-aviso"><b>Venta en línea próximamente</b> · Precio con IVA incluido</p>';
   }
 
+  /* Las 6 páginas con bloque LZ: se marcan en el <head>, antes de pintar, para que no se vea la plantilla ni la carga */
+  var RUTAS_LZ = /^\/(disena-tu-bano|porcelanato|calculadora|tienda|profesionales)?\/?$/;
+  var EDITOR_HOST = /^www\.webador\./i, EDITOR_RUTA = /^\/v2\//;
+  function esPaginaLZ(ruta, host) {
+    if (EDITOR_HOST.test(host || '') || EDITOR_RUTA.test(ruta || '')) return false;
+    return RUTAS_LZ.test(ruta || '/');
+  }
+
   function codigoGlobal(base) {
-    return '<link rel="stylesheet" href="' + base + 'assets/fuentes/fuentes.css">' +
+    var critico = '<style>html.lz-pagina,html.lz-pagina body{background:#0d0c0b!important}html.lz-pagina body{visibility:hidden}' +
+      'html.lz-pagina #lz-sitio{visibility:visible;position:fixed!important;inset:0!important;z-index:2147483000!important}</style>';
+    var marca = '<script>(function(){var h=location.hostname,r=location.pathname;if(/' + EDITOR_HOST.source + '/i.test(h)||/' + EDITOR_RUTA.source + '/.test(r)||!/' + RUTAS_LZ.source + '/.test(r))return;' +
+      'var d=document.documentElement;d.classList.add("lz-pagina");var q=function(){if(!document.getElementById("lz-sitio"))d.classList.remove("lz-pagina")};' +
+      'document.addEventListener("DOMContentLoaded",q);setTimeout(q,4000)})();</script>';
+    return critico + marca + '<link rel="stylesheet" href="' + base + 'assets/fuentes/fuentes.css">' +
       '<link rel="stylesheet" href="' + base + 'assets/producto/lz-producto.css">' +
       '<script src="' + base + 'assets/producto/lz-producto.js" defer></script>';
   }
 
-  var api = { TIPOS: TIPOS, esFicha: esFicha, partirTitulo: partirTitulo, enlaceLinea: enlaceLinea, encabezadoHTML: encabezadoHTML, pieHTML: pieHTML, avisoVenta: avisoVenta, codigoGlobal: codigoGlobal };
+  var api = { TIPOS: TIPOS, esFicha: esFicha, esPaginaLZ: esPaginaLZ, partirTitulo: partirTitulo, enlaceLinea: enlaceLinea, encabezadoHTML: encabezadoHTML, pieHTML: pieHTML, avisoVenta: avisoVenta, codigoGlobal: codigoGlobal };
   if (typeof module !== 'undefined' && module.exports) { module.exports = api; return; }
   raiz.LZ = raiz.LZ || {}; raiz.LZ.producto = api;
 
