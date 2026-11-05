@@ -11,7 +11,8 @@
     ['Monomando', 'Grifería'], ['Llave para tarja', 'Grifería'], ['Fregadero', 'Cocina'],
     ['Contra', 'Accesorios'], ['Coladera', 'Accesorios'], ['Cortina para baño', 'Accesorios'], ['Malla decorativa', 'Accesorios']
   ].sort(function (a, b) { return b[0].length - a[0].length; });
-  var SECCIONES = [['/disena-tu-bano', 'Diseña tu baño'], ['/porcelanato', 'Porcelanato'], ['/calculadora', 'Calculadora'], ['/tienda', 'Tienda'], ['/profesionales', 'Profesionales']];
+  var SECCIONES = [['/tienda', 'Tienda'], ['/disena-tu-bano', 'Diseña tu baño'], ['/calculadora', 'Calculadora'], ['/porcelanato', 'Porcelanato'], ['/profesionales', 'Profesionales']];
+  var CATEGORIAS = ['Muebles de baño', 'Espejos LED', 'Lavabos', 'Grifería', 'Cocina', 'Accesorios'];
 
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
 
@@ -35,16 +36,17 @@
   }
 
   function encabezadoHTML(base) {
-    return '<header class="lzp-hdr"><a class="lzp-logo" href="/"><img src="' + esc(base) + 'assets/marca/logo-lz-marfil.png" alt="LANZAMIENTO · inicio" width="120" height="40"></a>' +
+    return '<header class="lzp-hdr"><div class="lzp-hdr-top"><a class="lzp-logo" href="/"><img src="' + esc(base) + 'assets/marca/logo-lz-negro.png" alt="LANZAMIENTO · inicio" width="176" height="60"></a>' +
       '<nav class="lzp-nav" aria-label="Principal">' + enlaces(false) + '</nav>' +
-      '<button class="lzp-menu-btn" type="button" aria-expanded="false" aria-controls="lzp-menu">Menú</button></header>' +
+      '<button class="lzp-menu-btn" type="button" aria-expanded="false" aria-controls="lzp-menu">Menú</button></div>' +
+      '<nav class="lzp-cats" aria-label="Categorías">' + CATEGORIAS.map(function (c) { return '<a href="' + enlaceLinea(c) + '">' + esc(c) + '</a>'; }).join('') + '<a href="/porcelanato">Porcelanato</a></nav></header>' +
       '<nav class="lzp-menu" id="lzp-menu" aria-label="Menú" hidden>' + enlaces(true) + '</nav>';
   }
 
   function pieHTML(base) {
     return '<footer class="lzp-pie"><div class="lzp-pie-top">' +
-      '<div><img src="' + esc(base) + 'assets/marca/logo-lz-marfil.png" alt="LANZAMIENTO" width="162" height="54" loading="lazy"></div>' +
-      '<div><h6>Tienda</h6><ul><li><a href="/tienda">Todos los productos</a></li><li><a href="' + enlaceLinea('Muebles de baño') + '">Muebles de baño</a></li><li><a href="/porcelanato">Porcelanato</a></li></ul></div>' +
+      '<div><img src="' + esc(base) + 'assets/marca/logo-lz-marfil.png" alt="LANZAMIENTO" width="240" height="82" loading="lazy"></div>' +
+      '<div><h6>Tienda</h6><ul><li><a href="/tienda">Todos los productos</a></li><li><a href="' + enlaceLinea('Muebles de baño') + '">Muebles de baño</a></li><li><a href="' + enlaceLinea('Espejos LED') + '">Espejos LED</a></li><li><a href="/porcelanato">Porcelanato</a></li></ul></div>' +
       '<div><h6>Herramientas</h6><ul><li><a href="/disena-tu-bano">Diseña tu baño</a></li><li><a href="/calculadora">Calculadora de cajas</a></li></ul></div>' +
       '<div><h6>Profesionales</h6><ul><li><a href="/profesionales">Arquitectos y obra</a></li><li><a href="/porcelanato">Fichas técnicas</a></li></ul></div>' +
       '</div><div class="lzp-pie-base"><span>LANZAMIENTO · ' + new Date().getFullYear() + '</span><span>Precios con IVA incluido.</span></div></footer>';
@@ -63,7 +65,7 @@
   }
 
   function codigoGlobal(base) {
-    var critico = '<style>html.lz-pagina,html.lz-pagina body{background:#0d0c0b!important}html.lz-pagina body{visibility:hidden}' +
+    var critico = '<style>html.lz-pagina,html.lz-pagina body{background:#fff!important}html.lz-pagina body{visibility:hidden}' +
       'html.lz-pagina #lz-sitio{visibility:visible;position:fixed!important;inset:0!important;z-index:2147483000!important}</style>';
     var marca = '<script>(function(){var h=location.hostname,r=location.pathname;if(/' + EDITOR_HOST.source + '/i.test(h)||/' + EDITOR_RUTA.source + '/.test(r)||!/' + RUTAS_LZ.source + '/.test(r))return;' +
       'var d=document.documentElement;d.classList.add("lz-pagina");var q=function(){if(!document.getElementById("lz-sitio"))d.classList.remove("lz-pagina")};' +
