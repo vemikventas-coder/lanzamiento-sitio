@@ -75,7 +75,33 @@
       '<script src="' + base + 'assets/producto/lz-producto.js" defer></script>';
   }
 
-  var api = { TIPOS: TIPOS, esFicha: esFicha, esPaginaLZ: esPaginaLZ, partirTitulo: partirTitulo, enlaceLinea: enlaceLinea, encabezadoHTML: encabezadoHTML, pieHTML: pieHTML, avisoVenta: avisoVenta, codigoGlobal: codigoGlobal };
+  /* «También te puede interesar»: la lista la arma build/relacionados.mjs (JSON en el alojamiento, junto a este archivo) */
+  function idDeRuta(ruta) { var m = String(ruta || '').match(/^\/product\/(\d+)(\/|$)/); return m ? m[1] : null; }
+  function precioDeFicha(html) {
+    var tag = (String(html || '').match(/<meta[^>]*itemprop="price"[^>]*>/) || [])[0];
+    var v = tag && (tag.match(/\scontent="([^"]*)"/) || [])[1];
+    var n = v != null ? parseFloat(String(v).replace(/[^\d.]/g, '')) : NaN;
+    return isFinite(n) ? n : null;
+  }
+  function textoPrecio(n) {
+    if (!(Number(n) > 0)) return 'Ver precio';
+    var p = Number(n).toFixed(2).split('.');
+    return '$' + p[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '.' + p[1] + ' MXN';
+  }
+  function relacionadosHTML(items, base) {
+    if (!items || !items.length) return '';
+    return '<section class="lzp-rel" aria-labelledby="lzp-rel-t"><h2 id="lzp-rel-t">También te puede interesar</h2><div class="lzp-rel-grid">' +
+      items.map(function (x) {
+        return '<a class="lzp-rel-card" href="' + esc(x.url) + '">' +
+          '<span class="lzp-rel-foto"><img src="' + esc(base + x.img) + '" alt="' + esc(x.tipo + ' ' + x.modelo) + '" loading="lazy" decoding="async" width="480" height="600"></span>' +
+          '<span class="lzp-rel-tipo">' + esc(x.tipo) + '</span><b class="lzp-rel-modelo">' + esc(x.modelo) + '</b>' +
+          '<span class="lzp-rel-precio" data-precio-url="' + esc(x.url) + '">Ver precio</span>' +
+          '<span class="lzp-rel-ir">Ver ficha <i aria-hidden="true">→</i></span></a>';
+      }).join('') + '</div></section>';
+  }
+
+  var api = { TIPOS: TIPOS, esFicha: esFicha, esPaginaLZ: esPaginaLZ, partirTitulo: partirTitulo, enlaceLinea: enlaceLinea, encabezadoHTML: encabezadoHTML, pieHTML: pieHTML, avisoVenta: avisoVenta, codigoGlobal: codigoGlobal,
+    idDeRuta: idDeRuta, precioDeFicha: precioDeFicha, textoPrecio: textoPrecio, relacionadosHTML: relacionadosHTML };
   if (typeof module !== 'undefined' && module.exports) { module.exports = api; return; }
   raiz.LZ = raiz.LZ || {}; raiz.LZ.producto = api;
 
@@ -104,6 +130,31 @@
     var pie = doc.querySelector('footer.block-footer');
     (pie || doc.body).insertAdjacentHTML(pie ? 'beforebegin' : 'beforeend', pieHTML(base));
     doc.documentElement.classList.add('lzp-listo');
+    var id = idDeRuta(raiz.location && raiz.location.pathname);
+    if (ficha && id) relacionados(id, ficha);
+  }
+
+  function relacionados(id, ficha) {
+    if (!raiz.fetch) return;
+    raiz.fetch(base + 'assets/producto/relacionados.json').then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
+      var lista = (j && j.rel && j.rel[id]) || [];
+      var h = relacionadosHTML(lista.map(function (i) { return j.productos[i]; }).filter(Boolean), base);
+      if (!h || doc.querySelector('.lzp-rel')) return;
+      ficha.insertAdjacentHTML('afterend', h);
+      /* precio de cada sugerencia: de su ficha nativa, cuando la sección se acerca a la pantalla */
+      var pedir = function (el) {
+        raiz.fetch(el.getAttribute('data-precio-url'), { credentials: 'same-origin' })
+          .then(function (r) { return r.ok ? r.text() : ''; })
+          .then(function (html) { el.textContent = textoPrecio(precioDeFicha(html)); })
+          .catch(function () {});
+      };
+      var els = doc.querySelectorAll('.lzp-rel [data-precio-url]');
+      if (!('IntersectionObserver' in raiz)) { els.forEach(pedir); return; }
+      var io = new IntersectionObserver(function (es) {
+        es.forEach(function (e) { if (e.isIntersecting) { io.unobserve(e.target); pedir(e.target); } });
+      }, { rootMargin: '400px 0px' });
+      els.forEach(function (el) { io.observe(el); });
+    }).catch(function () {});
   }
   if (doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded', montar); else montar();
 })(typeof window !== 'undefined' ? window : this);
